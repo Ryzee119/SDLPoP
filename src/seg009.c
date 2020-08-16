@@ -61,6 +61,47 @@ bool file_exists(const char* filename) {
 }
 
 const char* locate_file_(const char* filename, char* path_buffer, int buffer_size) {
+	#ifdef NXDK
+	//Replace '/' with '\\' for xbox compatibility
+	char xbox_filename[POP_MAX_PATH];
+	strcpy(xbox_filename, filename);
+	char *current_pos = strchr(xbox_filename, '/');
+	while (current_pos)
+	{
+		*current_pos = '\\';
+		current_pos = strchr(current_pos, '/');
+	}
+
+	//Handle special cases
+	if (strcmp(filename, "SDLPoP.cfg") == 0)
+	{
+		snprintf(path_buffer, buffer_size, "%s\\%s", settingsPath, xbox_filename);
+		return path_buffer;
+	}
+
+	//Try all the xbox directories.
+	snprintf(path_buffer, buffer_size, "%s\\%s", rootPath, xbox_filename);
+	if (file_exists(path_buffer))
+		return path_buffer;
+
+	snprintf(path_buffer, buffer_size, "%s\\data\\%s", rootPath, xbox_filename);
+	if (file_exists(path_buffer))
+		return path_buffer;
+
+	snprintf(path_buffer, buffer_size, "%s\\%s", popSavePath, xbox_filename);
+	if (file_exists(path_buffer))
+		return path_buffer;
+
+	snprintf(path_buffer, buffer_size, "%s\\%s", settingsPath, xbox_filename);
+	if (file_exists(path_buffer))
+		return path_buffer;
+
+	snprintf(path_buffer, buffer_size, "%s\\%s", scorePath, xbox_filename);
+	if (file_exists(path_buffer))
+		return path_buffer;
+
+	return filename;
+	#else
 	if(file_exists(filename)) {
 		return filename;
 	} else {
@@ -70,9 +111,11 @@ const char* locate_file_(const char* filename, char* path_buffer, int buffer_siz
 		snprintf_check(path_buffer, buffer_size, "%s/%s", exe_dir, filename);
 		return (const char*) path_buffer;
 	}
+	#endif
 }
 
 #ifdef _WIN32
+#ifndef NXDK
 // These macros are from the SDL2 source. (src/core/windows/SDL_windows.h)
 // The pointers returned by these macros must be freed with SDL_free().
 #define WIN_StringToUTF8(S) SDL_iconv_string("UTF-8", "UTF-16LE", (char *)(S), (SDL_wcslen(S)+1)*sizeof(WCHAR))
@@ -117,6 +160,7 @@ int stat_UTF8(const char *filename_UTF8, struct stat *_Stat) {
 	return result;
 }
 
+#endif //NXDK
 #endif //_WIN32
 
 // OS abstraction for listing directory contents
@@ -126,6 +170,7 @@ int stat_UTF8(const char *filename_UTF8, struct stat *_Stat) {
 // NOTE: If we are using MinGW, we'll opt to use the Win32 API as well: dirent.h would just wrap Win32 anyway!
 
 #ifdef _WIN32
+#ifndef NXDK
 struct directory_listing_type {
 	WIN32_FIND_DATAW find_data;
 	HANDLE search_handle;
@@ -165,6 +210,7 @@ void close_directory_listing(directory_listing_type* data) {
 	free(data);
 }
 
+#endif //NXDK
 #else // use dirent.h API for listing files
 
 struct directory_listing_type {
@@ -338,6 +384,7 @@ int __pascal far pop_wait(int timer_index,int time) {
 
 static FILE* open_dat_from_root_or_data_dir(const char* filename) {
 	FILE* fp = NULL;
+	#ifndef NXDK
 	fp = fopen(filename, "rb");
 
 	// if failed, try if the DAT file can be opened in the data/ directory, instead of the main folder
@@ -357,6 +404,9 @@ static FILE* open_dat_from_root_or_data_dir(const char* filename) {
 			fp = fopen(data_path, "rb");
 		}
 	}
+	#else
+	fp = fopen(locate_file(filename), "rb");
+	#endif
 	return fp;
 }
 
@@ -402,6 +452,7 @@ dat_type *__pascal open_dat(const char *filename, int optional) {
 		pointer->handle = fp;
 		pointer->dat_table = dat_table;
 	} else if (optional == 0) {
+		#ifndef NXDK
 		// showmessage will crash if we call if before certain things are initialized!
 		// Solution: In pop_main(), I moved the first open_dat() call after init_copyprot_dialog().
 		// /*
@@ -426,6 +477,9 @@ dat_type *__pascal open_dat(const char *filename, int optional) {
 				quit(1);
 			}
 		}
+		#else
+		return pointer;
+		#endif
 		// */
 	}
 out:
@@ -2140,11 +2194,17 @@ sound_buffer_type* load_sound(int index) {
 				if (fp == NULL) {
 					break;
 				}
+				#ifndef NXDK
 				// Read the entire file (undecoded) into memory.
 				struct stat info;
 				if (fstat(fileno(fp), &info))
 					break;
 				size_t file_size = (size_t) MAX(0, info.st_size);
+				#else
+				fseek(fp, 0L, SEEK_END);
+				size_t file_size = ftell(fp);
+				fseek(fp, 0L, SEEK_SET);
+				#endif
 				byte* file_contents = malloc(file_size);
 				if (fread(file_contents, 1, file_size, fp) != file_size) {
 					free(file_contents);
@@ -2442,7 +2502,7 @@ void __pascal far set_gr_mode(byte grmode) {
 	SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
 #endif
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_NOPARACHUTE |
-	             SDL_INIT_GAMECONTROLLER | SDL_INIT_HAPTIC ) != 0) {
+	             SDL_INIT_GAMECONTROLLER) != 0) {
 		sdlperror("set_gr_mode: SDL_Init");
 		quit(1);
 	}
@@ -2779,6 +2839,7 @@ void load_from_opendats_metadata(int resource_id, const char* extension, FILE** 
 			}
 
 			if (fp != NULL) {
+				#ifndef NXDK
 				struct stat buf;
 				if (fstat(fileno(fp), &buf) == 0) {
 					*result = data_directory;
@@ -2788,6 +2849,12 @@ void load_from_opendats_metadata(int resource_id, const char* extension, FILE** 
 					fclose(fp);
 					fp = NULL;
 				}
+				#else
+				fseek(fp, 0L, SEEK_END);
+				*size = ftell(fp);
+				*result = data_directory;
+				fseek(fp, 0L, SEEK_SET);
+				#endif
 			}
 		}
 	}

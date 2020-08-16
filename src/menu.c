@@ -2235,6 +2235,7 @@ void save_ingame_settings(void) {
 }
 
 void load_ingame_settings(void) {
+	#ifndef NXDK
 	// We want the SDLPoP.cfg file (in-game menu settings) to override the SDLPoP.ini file,
 	// but ONLY if the .ini file wasn't modified since the last time the .cfg file was saved!
 	struct stat st_ini, st_cfg;
@@ -2246,6 +2247,9 @@ void load_ingame_settings(void) {
 			return;
 		}
 	}
+	#else
+	const char* cfg_filename = locate_file("SDLPoP.cfg");
+	#endif
 	// If there is a SDLPoP.cfg file, let it override the settings
 	SDL_RWops* rw = SDL_RWFromFile(cfg_filename, "rb");
 	if (rw != NULL) {

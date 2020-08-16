@@ -516,6 +516,7 @@ const char* locate_file_(const char* filename, char* path_buffer, int buffer_siz
 
 #ifdef _WIN32
 
+#ifndef NXDK
 FILE* fopen_UTF8(const char* filename, const char* mode);
 #define fopen fopen_UTF8
 
@@ -535,6 +536,9 @@ int stat_UTF8(const char *filename_UTF8, struct stat *_Stat);
 // We define a function-like macro, because `stat` is also the name of the type, and we don't want to redefine that.
 #define stat(filename_UTF8, _Stat) stat_UTF8(filename_UTF8, _Stat)
 
+#else
+int _access (const char *__name, int __type);
+#endif //NXDK
 #endif //_WIN32
 
 directory_listing_type* create_directory_listing_and_find_first_file(const char* directory, const char* extension);
