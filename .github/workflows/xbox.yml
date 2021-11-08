@@ -1,0 +1,45 @@
+name: Xbox
+
+on:
+  push:
+    paths:
+      - 'src/*'
+      - '.github/workflows/*'
+  pull_request:
+    paths:
+      - 'src/*'
+      - '.github/workflows/*'
+
+jobs:
+  Xbox:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install and Setup Dependencies
+      run: |
+        sudo apt-get update -y && sudo apt-get install -y flex bison clang lld llvm
+        cd ~
+        git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/XboxDev/nxdk.git
+
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Compile
+      run: |
+        eval $(~/nxdk/bin/activate -s)
+        make -f Makefile.nxdk -j$(nproc)
+
+    # Only create artifact on a push to xbox
+    - if: github.event_name == 'push' 
+      name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: SDLPoP_Xbox
+        path: |
+          doc
+          bin/data
+          bin/default.xbe
+          bin/LICENSE.txt
+          PrinceofPersia.iso
