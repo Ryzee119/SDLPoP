@@ -1,0 +1,27 @@
+name: Build Switch Port
+
+on: [push]
+
+jobs:
+  switch:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Build code
+      run: |
+        docker pull devkitpro/devkita64
+        docker run --rm \
+          -v $PWD:/SDLPoP -w /SDLPoP \
+          devkitpro/devkita64 \
+          make -j
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: SDLPoP_Switch
+        path: |
+          SDLPoP.nro
+          src/GPLv3.h
