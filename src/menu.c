@@ -311,10 +311,12 @@ typedef struct setting_type {
 } setting_type;
 
 setting_type general_settings[] = {
+		#ifndef __SWITCH__
 		{.id = SETTING_SHOW_MENU_ON_PAUSE, .style = SETTING_STYLE_TOGGLE, .linked = &enable_pause_menu,
 				.text = "Enable pause menu",
 				.explanation = "Show the in-game menu when you pause the game.\n"
 						"If disabled, you can still bring up the menu by pressing Backspace."},
+		#endif
 		{.id = SETTING_ENABLE_INFO_SCREEN, .style = SETTING_STYLE_TOGGLE, .linked = &enable_info_screen,
 				.text = "Display info screen on launch",
 				.explanation = "Display the SDLPoP information screen when the game starts."},
@@ -351,9 +353,11 @@ int integer_scaling_possible =
 ;
 
 setting_type visuals_settings[] = {
+		#ifndef __SWITCH__
 		{.id = SETTING_FULLSCREEN, .style = SETTING_STYLE_TOGGLE, .linked = &start_fullscreen,
 				.text = "Start fullscreen",
 				.explanation = "Start the game in fullscreen mode.\nYou can also toggle fullscreen by pressing Alt+Enter."},
+		#endif
 		{.id = SETTING_USE_HARDWARE_ACCELERATION, .style = SETTING_STYLE_NUMBER, .number_type = SETTING_BYTE, .max = 2,
 				.linked = &use_hardware_acceleration, .names_list = &use_hardware_acceleration_setting_names_list,
 				.text = "Use hardware acceleration",
@@ -365,12 +369,14 @@ setting_type visuals_settings[] = {
 				.text = "Use 4:3 aspect ratio",
 				.explanation = "Render the game in the originally intended 4:3 aspect ratio."
 				               "\nNB. Works best using a high resolution."},
+		#ifndef __SWITCH__
 		{.id = SETTING_USE_INTEGER_SCALING, .style = SETTING_STYLE_TOGGLE, .linked = &use_integer_scaling,
 				.required = &integer_scaling_possible,
 				.text = "Use integer scaling",
 				.explanation = "Enable pixel perfect scaling. That is, make all pixels the same size by forcing integer scale factors.\n"
 						"Combining with 4:3 aspect ratio requires at least 1600x1200."
 						"\nYou need to compile with SDL 2.0.5 or newer to enable this."},
+		#endif
 		{.id = SETTING_SCALING_TYPE, .style = SETTING_STYLE_NUMBER, .number_type = SETTING_BYTE, .max = 2,
 				.linked = &scaling_type, .names_list = &scaling_type_setting_names_list,
 				.text = "Scaling method",
@@ -2104,9 +2110,15 @@ int key_test_paused_menu(int key) {
 			joy_ABXY_buttons_released = false;
 			if (joy_button_states[JOYINPUT_A] & KEYSTATE_HELD) {
 				key = SDL_SCANCODE_RETURN;
+				#ifdef __SWITCH__
+				key = SDL_SCANCODE_ESCAPE; //Swap A,B in menu
+				#endif
 				joy_button_states[JOYINPUT_A] = 0; // Prevent 'down' input being passed to the controls if the game is unpaused.
 			} else if (joy_button_states[JOYINPUT_B] & KEYSTATE_HELD) {
 				key = SDL_SCANCODE_ESCAPE;
+				#ifdef __SWITCH__
+				key = SDL_SCANCODE_RETURN; //Swap A,B in menu
+				#endif
 			}
 		}
 	}

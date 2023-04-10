@@ -38,7 +38,7 @@ The authors of this program may be contacted at https://forum.princed.org
 #define USE_FADE
 
 // Enable or disable the potions level. (copy protection)
-#define USE_COPYPROT
+//#define USE_COPYPROT
 
 // Enable or disable flashing.
 #define USE_FLASH
@@ -54,7 +54,7 @@ The authors of this program may be contacted at https://forum.princed.org
 //#define USE_COMPAT_TIMER
 
 // Enable quicksave/load feature.
-#define USE_QUICKSAVE
+//#define USE_QUICKSAVE
 
 // Try to let time keep running out when quickloading. (similar to Ctrl+A)
 // Technically, the 'remaining time' is still restored, but with a penalty for elapsed time (up to 1 minute).
@@ -64,7 +64,7 @@ The authors of this program may be contacted at https://forum.princed.org
 #ifdef USE_QUICKSAVE // Replay relies on quicksave, because the replay file begins with a quicksave of the initial state.
 
 // Enable recording/replay feature.
-#define USE_REPLAY
+//#define USE_REPLAY
 
 #endif
 
@@ -323,7 +323,7 @@ The authors of this program may be contacted at https://forum.princed.org
 #define USE_LIGHTING
 
 // Enable screenshot features.
-#define USE_SCREENSHOT
+//#define USE_SCREENSHOT
 
 // Automatically switch to keyboard or joystick/gamepad mode if there is input from that device.
 // Useful if SDL detected a gamepad but there is none.

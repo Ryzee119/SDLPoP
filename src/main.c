@@ -20,8 +20,20 @@ The authors of this program may be contacted at https://forum.princed.org
 
 #include "common.h"
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
+
 int main(int argc, char *argv[])
 {
+#ifdef __SWITCH__
+#ifdef USE_NXLINK
+	socketInitializeDefault();
+	nxlinkStdio();
+#endif
+	romfsInit();
+	chdir("romfs:/");
+#endif
 	g_argc = argc;
 	g_argv = argv;
 	pop_main();

@@ -2323,6 +2323,14 @@ const rect_type splash_text_1_rect = {0, 0, 50, 320};
 const rect_type splash_text_2_rect = {50, 0, 200, 320};
 
 const char* splash_text_1 = "SDLPoP " SDLPOP_VERSION;
+#ifdef __SWITCH__
+const char* splash_text_2 =
+		"Switch port by Ryzee119\n"
+		"\n"
+		"See https://github.com/Ryzee119/SDLPoP"
+		"\n"
+		"Press any key to continue...";
+#else
 const char* splash_text_2 =
 		"In-game, Esc opens a settings/quicksave menu.\n"
 		"\n"
@@ -2339,6 +2347,7 @@ const char* splash_text_2 =
 		"\n"
 		"Press any key to continue...";
 
+#endif
 void show_splash() {
 	if (!enable_info_screen || start_level >= 0) return;
 	current_target_surface = onscreen_surface_;

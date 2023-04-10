@@ -29,6 +29,9 @@ The authors of this program may be contacted at https://forum.princed.org
 #include "dirent.h"
 #endif
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
 // Most functions in this file are different from those in the original game.
 
 void sdlperror(const char* header) {
@@ -271,6 +274,9 @@ void restore_stuff() {
 
 // seg009:0E33
 int key_test_quit() {
+#ifdef USE_NXLINK
+	socketExit();
+#endif
 	word key = read_key();
 	if (key == (SDL_SCANCODE_Q | WITH_CTRL)) { // Ctrl+Q
 
@@ -1544,6 +1550,13 @@ void draw_text_cursor(int xpos,int ypos,int color) {
 
 // seg009:053C
 int input_str(const rect_type* rect,char* buffer,int max_length,const char *initial,int has_initial,int arg_4,int color,int bgcolor) {
+#ifdef __SWITCH__
+	SwkbdConfig kbd;
+	swkbdCreate(&kbd, 0);
+	swkbdConfigMakePresetDefault(&kbd);
+	swkbdShow(&kbd, buffer, max_length);
+	return strlen(buffer);
+#endif
 	// Display the screen keyboard if supported.
 	//SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 	SDL_Rect sdlrect;
