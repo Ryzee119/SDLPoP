@@ -162,6 +162,7 @@ copy_resources:
 	@mkdir -p $(ROMFS)
 	@cp -r $(CURDIR)/data/ $(ROMFS)/
 	@cp $(CURDIR)/src/GPLv3.h $(ROMFS)/LICENSE.txt
+	@cp $(CURDIR)/src/GPLv3.h $(CURDIR)/LICENSE.txt
 
 #---------------------------------------------------------------------------------
 clean:
